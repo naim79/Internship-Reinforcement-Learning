@@ -51,20 +51,20 @@ class Package:
 
     def action(self, choice):
         '''
-        Gives us 4 total movement options. (0,1,2,3)
+        ["EAST", "NORTHEAST", "NORTHWEST","WEST", "SOUTHWEST", "SOUTHEAST","STAY"]
         '''
         if choice == 0:
             self.move(1, 0)
         elif choice == 1:
-            self.move(-1, (self.y)%2)
+            self.move((self.y)%2, 1)
         elif choice == 2:
-            self.move(-1, -(1+(self.y))%2)
+            self.move( -(1+(self.y))%2, 1)
         elif choice == 3:
             self.move(-1, 0)
         elif choice == 4:
-            self.move(-((self.x)+1)%2, -1)
+            self.move(-((self.y)+1)%2, -1)
         elif choice == 5:
-            self.move((self.x)%2, -1)
+            self.move((self.y)%2, -1)
         elif choice == 6:
             self.move(x=0, y=0)
             
