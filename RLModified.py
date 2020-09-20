@@ -8,7 +8,7 @@ import time
 
 style.use("ggplot")
 
-SIZE = 5
+SIZE = 7
 HM_EPISODES = 25000
 MOVE_PENALTY = 0.5
 OUT_PENALTY= 300
