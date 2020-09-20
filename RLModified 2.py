@@ -116,8 +116,6 @@ for episode in range(HM_EPISODES):
         package2 = Cell()
         if not package1.x-package2.x==0:
             break
-    package3 = Cell(package1.x,package1.y)
-    package4 = Cell(package2.x,package2.y)
     destination1 = Cell(3, SIZE-1)
     destination2 = Cell(SIZE-1,3)
     destination3 = Cell(0, 3)
