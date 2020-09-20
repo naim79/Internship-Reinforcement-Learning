@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import pickle
 from matplotlib import style
 import time
+import pygame
 
 style.use("ggplot")
 
 SIZE = 7
-HM_EPISODES = 25000
+HM_EPISODES =40000
 MOVE_PENALTY = 0.5
 OUT_PENALTY= 300
 COLLISION_PENALTY=300
@@ -32,13 +33,30 @@ d = {1: (255, 175, 0), #blue
      2: (0, 255, 0), #Green
      3: (0, 0, 255)} #Red
 
+map_file='map.png'
+conv=pygame.image.load(map_file)
+p1_file='greenPackage.png'
+p1=pygame.image.load(p1_file)
+p2_file='bluePackage.png'
+p2=pygame.image.load(p2_file)
+d1_file='greenCell.png'
+d1=pygame.image.load(d1_file)
+d2_file='blueCell.png'
+d2=pygame.image.load(d2_file)
+d3_file='redCell.png'
+d3=pygame.image.load(d3_file)
+
+screen_width = 750
+screen_height = 580
+screen = pygame.display.set_mode((screen_width, screen_height))
+
 MOVE_OPTIONS=["EAST", "NORTHEAST", "NORTHWEST","WEST", "SOUTHWEST", "SOUTHEAST","STAY"]
 
-class Package:
+class Cell:
     def __init__(self, x=False, y=False):
-        if not x:
+        if not x and not y:
             self.x = np.random.randint(1, SIZE-1)
-            self.y = SIZE-2
+            self.y = 1
         else:
             self.x=x
             self.y=y
@@ -56,43 +74,22 @@ class Package:
         if choice == 0:
             self.move(1, 0)
         elif choice == 1:
-            self.move((self.y)%2, 1)
+            self.move((self.y+1)%2, 1)
         elif choice == 2:
-            self.move( -(1+(self.y))%2, 1)
+            self.move( -((self.y))%2, 1)
         elif choice == 3:
             self.move(-1, 0)
         elif choice == 4:
-            self.move(-((self.y)+1)%2, -1)
+            self.move(-((self.y))%2, -1)
         elif choice == 5:
-            self.move((self.y)%2, -1)
+            self.move((self.y+1)%2, -1)
         elif choice == 6:
-            self.move(x=0, y=0)
+            self.move(0, 0)
             
 
-    def move(self, x=False, y=False):
-
-        # If no value for x, move randomly
-        if not x:
-            self.x += np.random.randint(-1, 2)
-        else:
-            self.x += x
-
-        # If no value for y, move randomly
-        if not y:
-            self.y += np.random.randint(-1, 2)
-        else:
-            self.y += y
-
-
-        # If we are out of bounds, fix!
-        if self.x < 0:
-            self.x = 0
-        elif self.x > SIZE-1:
-            self.x = SIZE-1
-        if self.y < 0:
-            self.y = 0
-        elif self.y > SIZE-1:
-            self.y = SIZE-1
+    def move(self, x, y):
+        self.x += x
+        self.y += y
 
 
 if start_q_table is None:
@@ -114,11 +111,16 @@ else:
 episode_rewards = []
 
 for episode in range(HM_EPISODES):
-    package1 = Package(0,1)
-    package2 = Package(SIZE-2,1)
-    destination3 = Package(2, 0)
-    destination1 = Package(SIZE-1, 0)
-    destination2 = Package(1,0)
+    while True:
+        package1 = Cell()
+        package2 = Cell()
+        if not package1.x-package2.x==0:
+            break
+    package3 = Cell(package1.x,package1.y)
+    package4 = Cell(package2.x,package2.y)
+    destination1 = Cell(3, SIZE-1)
+    destination2 = Cell(SIZE-1,3)
+    destination3 = Cell(0, 3)
     if episode % SHOW_EVERY == 0:
         print(f"on #{episode}, epsilon is {epsilon}")
         print(f"{SHOW_EVERY} ep mean: {np.mean(episode_rewards[-SHOW_EVERY:])}")
@@ -159,10 +161,10 @@ for episode in range(HM_EPISODES):
             q_table[obs][action2][1] =reward2
             p2_out=True
             reward+=reward2
-        if (package1.x==0 or package1.y==SIZE-1 or package1.y==0 or package1.x==SIZE-1) and not p1_out:
+        if (package1.x==0 or package1.y==SIZE-1 or package1.y==0 or package1.x==SIZE-1 or (package1.x==SIZE-2 and package1.y%2==0)) and not p1_out:
             reward1= -OUT_PENALTY#*i*(abs(package1.x-destination1.x)+abs(package1.y-destination1.y))
             p1_got_out=True
-        if ( package2.x==0 or package2.y==SIZE-1 or package2.y==0 or package2.x==SIZE-1) and not p2_out:    
+        if ( package2.x==0 or package2.y==SIZE-1 or package2.y==0 or package2.x==SIZE-1 or (package2.x==SIZE-2 and package2.y%2==0)) and not p2_out:    
             reward2= -OUT_PENALTY#*i*(abs(package2.x-destination2.x)+abs(package2.y-destination2.y))
             p2_got_out=True
         if package1.x == package2.x and package1.y == package2.y:
@@ -204,15 +206,24 @@ for episode in range(HM_EPISODES):
             #for i in range(1,SIZE-1):
             #    for ii in range(1,SIZE-1):
             #        env[i][ii]=(255,255,255)
-            env[destination1.y][destination1.x] = d[DESTINATION_N]  # sets the destination location tile to green color
+            env[SIZE-1-destination1.y][destination1.x] = d[DESTINATION_N]  # sets the destination location tile to green color
            
-            env[destination2.y][destination2.x] = d[PLAYER_N]  # sets the destination2 location to red
-            env[destination3.y][destination3.x] = d[ENEMY_N]
-            env[package1.y][package1.x] = d[DESTINATION_N]  # sets the package1 tile to blue
-            env[package2.y][package2.x] = d[PLAYER_N]
+            env[SIZE-1-destination2.y][destination2.x] = d[PLAYER_N]  # sets the destination2 location to red
+            env[SIZE-1-destination3.y][destination3.x] = d[ENEMY_N]
+            env[SIZE-1-package1.y][package1.x] = d[DESTINATION_N]  # sets the package1 tile to blue
+            env[SIZE-1-package2.y][package2.x] = d[PLAYER_N]
             img = Image.fromarray(env, 'RGB')  # reading to rgb. Apparently. Even tho color definitions are bgr. ???
             img = img.resize((300, 300))  # resizing so we can see our agent in all its glory.
             cv2.imshow("image", np.array(img))  # show it!
+            screen.blit(conv, (0, 0))
+            screen.blit(d1, (destination1.x*100+50*((destination1.y+1)%2), 580-20-(destination1.y+1)*80))
+            screen.blit(d2, (destination2.x*100+50*((destination2.y+1)%2), 580-20-(destination2.y+1)*80))
+            screen.blit(d3, (destination3.x*100+50*((destination3.y+1)%2), 580-20-(destination3.y+1)*80))
+            screen.blit(p1, (100*package1.x+50*((package1.y+1)%2)+10, 580-((package1.y+1)*80)-10))
+            screen.blit(p2, (100*package2.x+50*((package2.y+1)%2)+10, 580-((package2.y+1)*80)-10))
+            screen.blit(p2, (100*package3.x+50*((package3.y+1)%2)+10, 580-((package3.y+1)*80)-10))
+            screen.blit(p1, (100*package4.x+50*((package4.y+1)%2)+10, 580-((package4.y+1)*80)-10))
+            pygame.display.flip()
             if reward == 2*COLLISION_PENALTY or (p1_out and p2_out) :  # crummy code to hang at the end if we reach abrupt end for good reasons or not.
                 if cv2.waitKey(500) & 0xFF == ord('q'):
                     break
