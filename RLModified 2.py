@@ -76,11 +76,11 @@ class Cell:
         elif choice == 1:
             self.move((self.y+1)%2, 1)
         elif choice == 2:
-            self.move( -((self.y))%2, 1)
+            self.move( -((self.y)%2), 1)
         elif choice == 3:
             self.move(-1, 0)
         elif choice == 4:
-            self.move(-((self.y))%2, -1)
+            self.move(-((self.y)%2), -1)
         elif choice == 5:
             self.move((self.y+1)%2, -1)
         elif choice == 6:
@@ -130,8 +130,19 @@ for episode in range(HM_EPISODES):
     p1_out=False
     p2_out=False
     episode_reward = 0
+    if show:
+            screen.blit(conv, (0, 0))
+            screen.blit(d1, (destination1.x*100+50*((destination1.y+1)%2), 580-20-(destination1.y+1)*80))
+            screen.blit(d2, (destination2.x*100+50*((destination2.y+1)%2), 580-20-(destination2.y+1)*80))
+            screen.blit(d3, (destination3.x*100+50*((destination3.y+1)%2), 580-20-(destination3.y+1)*80))
+            screen.blit(p1, (100*package1.x+50*((package1.y+1)%2)+10, 580-((package1.y+1)*80)-10))
+            screen.blit(p2, (100*package2.x+50*((package2.y+1)%2)+10, 580-((package2.y+1)*80)-10))
+            pygame.display.flip()
+            time.sleep(0.5)
     for i in range(1,2*SIZE**2):
         obs = (package1-destination1, package2-destination2)
+        copyP1=package1
+        copyP2=package2
         #print(obs)
         if np.random.random() > epsilon:
             # GET THE ACTION
@@ -170,8 +181,10 @@ for episode in range(HM_EPISODES):
         if package1.x == package2.x and package1.y == package2.y:
             if not p1_out and not p1_got_out:
                 reward1-=COLLISION_PENALTY
-            if not p2_out and not p2_got_out:
                 reward2-=COLLISION_PENALTY
+        elif (package1-copyP2)==(0,0) and (package2-copyP1)==(0,0):
+            reward1-=COLLISION_PENALTY
+            reward2-=COLLISION_PENALTY
         else:
             if not p1_out and not p1_got_out:
                 reward1-=MOVE_PENALTY
@@ -194,35 +207,18 @@ for episode in range(HM_EPISODES):
             q_table[obs][action2][1]= (1 - LEARNING_RATE) * current_q2 + LEARNING_RATE * (reward2 + DISCOUNT * max_future_q2)
             reward+=reward1
             
-        
-        
         if p1_got_out:
             p1_out=True
         if p2_got_out:
             p2_out=True
             
         if show:
-            env = np.zeros((SIZE, SIZE, 3), dtype=np.uint8)  # starts an rbg of our size
-            #for i in range(1,SIZE-1):
-            #    for ii in range(1,SIZE-1):
-            #        env[i][ii]=(255,255,255)
-            env[SIZE-1-destination1.y][destination1.x] = d[DESTINATION_N]  # sets the destination location tile to green color
-           
-            env[SIZE-1-destination2.y][destination2.x] = d[PLAYER_N]  # sets the destination2 location to red
-            env[SIZE-1-destination3.y][destination3.x] = d[ENEMY_N]
-            env[SIZE-1-package1.y][package1.x] = d[DESTINATION_N]  # sets the package1 tile to blue
-            env[SIZE-1-package2.y][package2.x] = d[PLAYER_N]
-            img = Image.fromarray(env, 'RGB')  # reading to rgb. Apparently. Even tho color definitions are bgr. ???
-            img = img.resize((300, 300))  # resizing so we can see our agent in all its glory.
-            cv2.imshow("image", np.array(img))  # show it!
             screen.blit(conv, (0, 0))
             screen.blit(d1, (destination1.x*100+50*((destination1.y+1)%2), 580-20-(destination1.y+1)*80))
             screen.blit(d2, (destination2.x*100+50*((destination2.y+1)%2), 580-20-(destination2.y+1)*80))
             screen.blit(d3, (destination3.x*100+50*((destination3.y+1)%2), 580-20-(destination3.y+1)*80))
             screen.blit(p1, (100*package1.x+50*((package1.y+1)%2)+10, 580-((package1.y+1)*80)-10))
             screen.blit(p2, (100*package2.x+50*((package2.y+1)%2)+10, 580-((package2.y+1)*80)-10))
-            screen.blit(p2, (100*package3.x+50*((package3.y+1)%2)+10, 580-((package3.y+1)*80)-10))
-            screen.blit(p1, (100*package4.x+50*((package4.y+1)%2)+10, 580-((package4.y+1)*80)-10))
             pygame.display.flip()
             if reward == 2*COLLISION_PENALTY or (p1_out and p2_out) :  # crummy code to hang at the end if we reach abrupt end for good reasons or not.
                 if cv2.waitKey(500) & 0xFF == ord('q'):
@@ -230,7 +226,7 @@ for episode in range(HM_EPISODES):
             else:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-        #time.sleep(0.001)
+            #time.sleep(0.5)
         episode_reward += reward
         if reward == 2*COLLISION_PENALTY or (p1_out and p2_out):
             break
