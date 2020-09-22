@@ -17,21 +17,12 @@ COLLISION_PENALTY=300
 DESTINATION_REWARD = 200
 epsilon = 0.9
 EPS_DECAY = 0.9998  # Every episode will be epsilon*EPS_DECAY
-SHOW_EVERY = 100  # how often to play through env visually.
+SHOW_EVERY = 500  # how often to play through env visually.
 
 start_q_table = None # None or Filename
 
 LEARNING_RATE = 0.1
 DISCOUNT = 0.95
-
-PLAYER_N = 1  # package key in dict
-DESTINATION_N = 2  # destination key in dict
-ENEMY_N = 3  # destination2 key in dict
-
-# the dict!
-d = {1: (255, 175, 0), #blue
-     2: (0, 255, 0), #Green
-     3: (0, 0, 255)} #Red
 
 map_file='map.png'
 conv=pygame.image.load(map_file)
@@ -51,7 +42,7 @@ d2=pygame.image.load(d2_file)
 d3_file='redCell.png'
 d3=pygame.image.load(d3_file)
 
-screen_width = 750
+screen_width = 700
 screen_height = 580
 screen = pygame.display.set_mode((screen_width, screen_height))
 
@@ -119,7 +110,8 @@ else:
 # can look up from Q-table with: print(q_table[((-9, -2), (3, 9))]) for example
 
 episode_rewards = []
-
+Fails=0
+fail=[]
 for episode in range(HM_EPISODES):
     while True:
         package1 = Cell()
@@ -232,7 +224,7 @@ for episode in range(HM_EPISODES):
             reward2-=MOVE_PENALTY
         if not p3_out and not p3_got_out:
             reward3-=MOVE_PENALTY
-        ## NOW WE KNOW THE REWARD, LET'S CALC YO
+        ## NOW WE KNOW THE REWARD, LET'S CALC
         # first we need to obs immediately after the move.
         new_obs = (package1.toPair(), package2.toPair(), package3.toPair())
         max_future_q1 = np.max(q_table[new_obs],0)[0]
@@ -262,7 +254,8 @@ for episode in range(HM_EPISODES):
             p2_out=True
         if p3_got_out:
             p3_out=True
-            
+        if(reward<-3 or i==199):
+            Fails+=1
         if show:
             screen.blit(conv, (0, 0))
             screen.blit(d1, (destination1.x*100+50*((destination1.y+1)%2), 580-20-(destination1.y+1)*80))
@@ -272,26 +265,32 @@ for episode in range(HM_EPISODES):
             screen.blit(p2, (100*package2.x+50*((package2.y+1)%2)+10, 580-((package2.y+1)*80)-10))
             screen.blit(p3, (100*package3.x+50*((package3.y+1)%2)+10, 580-((package3.y+1)*80)-10))
             pygame.display.flip()
-            if reward > 2*COLLISION_PENALTY or (p1_out and p2_out and p3_out):  # crummy code to hang at the end if we reach abrupt end for good reasons or not.
-                if cv2.waitKey(500) & 0xFF == ord('q'):
-                    break
-            else:
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
             #time.sleep(0.5)
         episode_reward += reward
-        if reward > 2*COLLISION_PENALTY or (p1_out and p2_out and p3_out) or p1_got_out or p2_got_out or p3_got_out :
+        if reward < -3 or (p1_out and p2_out and p3_out) or p1_got_out or p2_got_out or p3_got_out :
             break
-        
+    #if show:
+     #   print(f"Number of fails = {Fails}")
+    fail.insert(len(fail),Fails)
+    Fails=0   
     #print(episode_reward)
     episode_rewards.append(episode_reward)
     epsilon *= EPS_DECAY
 
 moving_avg = np.convolve(episode_rewards, np.ones((SHOW_EVERY,))/SHOW_EVERY, mode='valid')
 
+plt.figure(1)
 plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"Reward {SHOW_EVERY}ma")
 plt.xlabel("episode #")
+
+'''
+fail_avg = np.convolve(fail, np.ones((SHOW_EVERY,)), mode='valid')
+plt.figure(2)
+plt.plot([i for i in range(len(fail_avg))], fail_avg)
+plt.ylabel(f"Fail{SHOW_EVERY}ma")
+plt.xlabel("episode #")
+'''
 plt.show()
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:

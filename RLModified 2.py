@@ -24,15 +24,6 @@ start_q_table = None # None or Filename
 LEARNING_RATE = 0.1
 DISCOUNT = 0.95
 
-PLAYER_N = 1  # package key in dict
-DESTINATION_N = 2  # destination key in dict
-ENEMY_N = 3  # destination2 key in dict
-
-# the dict!
-d = {1: (255, 175, 0), #blue
-     2: (0, 255, 0), #Green
-     3: (0, 0, 255)} #Red
-
 map_file='map.png'
 conv=pygame.image.load(map_file)
 p1_file='greenPackage.png'
@@ -46,7 +37,7 @@ d2=pygame.image.load(d2_file)
 d3_file='redCell.png'
 d3=pygame.image.load(d3_file)
 
-screen_width = 750
+screen_width = 700
 screen_height = 580
 screen = pygame.display.set_mode((screen_width, screen_height))
 
@@ -220,15 +211,9 @@ for episode in range(HM_EPISODES):
             screen.blit(p1, (100*package1.x+50*((package1.y+1)%2)+10, 580-((package1.y+1)*80)-10))
             screen.blit(p2, (100*package2.x+50*((package2.y+1)%2)+10, 580-((package2.y+1)*80)-10))
             pygame.display.flip()
-            if reward == 2*COLLISION_PENALTY or (p1_out and p2_out) :  # crummy code to hang at the end if we reach abrupt end for good reasons or not.
-                if cv2.waitKey(500) & 0xFF == ord('q'):
-                    break
-            else:
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
             #time.sleep(0.5)
         episode_reward += reward
-        if reward == 2*COLLISION_PENALTY or (p1_out and p2_out) or p1_got_out or p2_got_out:
+        if reward <-3 or (p1_out and p2_out) or p1_got_out or p2_got_out:
             break
         
     #print(episode_reward)
