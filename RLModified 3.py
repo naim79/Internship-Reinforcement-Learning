@@ -284,13 +284,13 @@ plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"Reward {SHOW_EVERY}ma")
 plt.xlabel("episode #")
 
-'''
+
 fail_avg = np.convolve(fail, np.ones((SHOW_EVERY,)), mode='valid')
 plt.figure(2)
 plt.plot([i for i in range(len(fail_avg))], fail_avg)
 plt.ylabel(f"Fail{SHOW_EVERY}ma")
 plt.xlabel("episode #")
-'''
+
 plt.show()
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
