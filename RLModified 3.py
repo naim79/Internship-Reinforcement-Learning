@@ -25,13 +25,13 @@ DISCOUNT = 0.9
 map_file = 'map.png'
 conv = pygame.image.load(map_file)
 
-p1_file = 'greenDiamond.png'
+p1_file = 'greenPackage.png'
 p1 = pygame.image.load(p1_file)
 
-p2_file = 'blueDiamond.png'
+p2_file = 'bluePackage.png'
 p2 = pygame.image.load(p2_file)
 
-p3_file = 'redDiamond.png'
+p3_file = 'redPackage.png'
 p3 = pygame.image.load(p3_file)
 
 d1_file = 'greenCell.png'
